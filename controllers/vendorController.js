@@ -66,22 +66,30 @@ const getAllVendors = async(req, res) => {
 }
 
 
-const getVendorById = async(req, res) => {
+const getVendorById = async (req, res) => {
     const vendorId = req.params.apple;
 
     try {
         const vendor = await Vendor.findById(vendorId).populate('firm');
+
         if (!vendor) {
-            return res.status(404).json({ error: "Vendor not found" })
+            return res.status(404).json({ error: "Vendor not found" });
         }
+
+        // Check if vendor has firm and it's not empty
+        if (!vendor.firm || vendor.firm.length === 0) {
+            return res.status(404).json({ error: "Firm not found for this vendor" });
+        }
+
         const vendorFirmId = vendor.firm[0]._id;
-        res.status(200).json({ vendorId, vendorFirmId, vendor })
-        console.log(vendorFirmId);
+
+        res.status(200).json({ vendorId, vendorFirmId, vendor });
+        console.log("Firm ID:", vendorFirmId);
     } catch (error) {
         console.log(error);
         res.status(500).json({ error: "Internal server error" });
     }
-}
+};
 
 
 module.exports = { vendorRegister, vendorLogin, getAllVendors, getVendorById }
