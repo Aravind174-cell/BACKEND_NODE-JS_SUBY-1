@@ -9,6 +9,7 @@ router.post('/login', vendorController.vendorLogin );
 
 router.get('/all-vendors', vendorController.getAllVendors);
 // router.get('/single-vendor/:apple', vendorController.getVendorById);
+// this is updated
 router.get('/single-vendor/:id', vendorController.getVendorById);
 
 module.exports = router;
