@@ -67,7 +67,9 @@ const getAllVendors = async(req, res) => {
 
 //updated code 
 const getVendorById = async (req, res) => {
-    const vendorId = req.params.apple;
+    // const vendorId = req.params.apple;
+    const vendorId = req.params.id; // ✅ no colon here updated one
+
 
     try {
         const vendor = await Vendor.findById(vendorId).populate('firm');
