@@ -65,7 +65,7 @@ const getAllVendors = async(req, res) => {
     }
 }
 
-
+//updated code 
 const getVendorById = async (req, res) => {
     const vendorId = req.params.apple;
 
