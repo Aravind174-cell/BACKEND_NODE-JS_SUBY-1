@@ -52,24 +52,36 @@ const addProduct = async(req, res) => {
     }
 }
 
-const getProductByFirm = async(req, res) => {
+// const mongoose = require('mongoose');
+
+
+const getProductByFirm = async (req, res) => {
     try {
         const firmId = req.params.firmId;
-        const firm = await Firm.findById(firmId);
+
+        if (!mongoose.Types.ObjectId.isValid(firmId)) {
+            return res.status(400).json({ error: "Invalid firm ID" });
+        }
+
+        const firm = await Firm.findById(firmId).lean();
 
         if (!firm) {
             return res.status(404).json({ error: "No firm found" });
         }
 
         const restaurantName = firm.firmName;
-        const products = await Product.find({ firm: firmId });
+        const products = await Product.find({ firm: firmId }).lean();
 
-        res.status(200).json({ restaurantName, products });
+        res.status(200).json({
+            message: "Products fetched successfully",
+            restaurantName,
+            products
+        });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: "Internal server error" })
+        res.status(500).json({ error: "Internal server error" });
     }
-}
+};
 
 const deleteProductById = async(req, res) => {
     try {
