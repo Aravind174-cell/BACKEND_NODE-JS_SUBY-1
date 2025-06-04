@@ -1,27 +1,33 @@
-
-const Product = require("../models/Product");
-const multer = require("multer");
-const Firm = require('../models/Firm')
+const mongoose = require('mongoose');
 const path = require('path');
+const multer = require('multer');
+const Product = require("../models/Product");
+const Firm = require('../models/Firm');
 
-
+// Multer setup for file storage
 const storage = multer.diskStorage({
-    destination: function(req, file, cb) {
-        cb(null, 'uploads/'); // Destination folder where the uploaded images will be stored
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/');
     },
-    filename: function(req, file, cb) {
-        cb(null, Date.now() + path.extname(file.originalname)); // Generating a unique filename
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + path.extname(file.originalname));
     }
 });
 
 const upload = multer({ storage: storage });
 
-const addProduct = async(req, res) => {
+// Add a new product
+const addProduct = async (req, res) => {
     try {
         const { productName, price, category, bestSeller, description } = req.body;
         const image = req.file ? req.file.filename : undefined;
 
         const firmId = req.params.firmId;
+
+        if (!mongoose.Types.ObjectId.isValid(firmId)) {
+            return res.status(400).json({ error: "Invalid firm ID" });
+        }
+
         const firm = await Firm.findById(firmId);
 
         if (!firm) {
@@ -36,25 +42,21 @@ const addProduct = async(req, res) => {
             description,
             image,
             firm: firm._id
-        })
+        });
 
         const savedProduct = await product.save();
-        firm.products.push(savedProduct);
 
+        firm.products.push(savedProduct._id);
+        await firm.save();
 
-        await firm.save()
-
-        res.status(200).json(savedProduct)
-
+        res.status(200).json(savedProduct);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: "Internal server error" })
+        res.status(500).json({ error: "Internal server error" });
     }
-}
+};
 
-// const mongoose = require('mongoose');
-
-
+// Get all products by firm
 const getProductByFirm = async (req, res) => {
     try {
         const firmId = req.params.firmId;
@@ -83,20 +85,31 @@ const getProductByFirm = async (req, res) => {
     }
 };
 
-const deleteProductById = async(req, res) => {
+// Delete product by ID
+const deleteProductById = async (req, res) => {
     try {
         const productId = req.params.productId;
+
+        if (!mongoose.Types.ObjectId.isValid(productId)) {
+            return res.status(400).json({ error: "Invalid product ID" });
+        }
 
         const deletedProduct = await Product.findByIdAndDelete(productId);
 
         if (!deletedProduct) {
-            return res.status(404).json({ error: "No product found" })
+            return res.status(404).json({ error: "No product found" });
         }
+
         res.status(200).json({ message: "Product deleted successfully" });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: "Internal server error" })
+        res.status(500).json({ error: "Internal server error" });
     }
-}
+};
 
-module.exports = { addProduct: [upload.single('image'), addProduct], getProductByFirm, deleteProductById };
+// Export controller functions
+module.exports = {
+    addProduct: [upload.single('image'), addProduct],
+    getProductByFirm,
+    deleteProductById
+};
